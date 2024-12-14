@@ -70,10 +70,34 @@ setup = {"question": query_fetcher, "context": query_fetcher | retriever | forma
 _chain = setup | _prompt | llm | StrOutputParser()
 
 # Streamlit UI
+# Streamlit UI
 st.title("Ask Anything About Elon Musk")
 
 # Chat container to display conversation
 chat_container = st.container()
+
+# Initialize session state for chat history
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+# Input field for queries
+with st.container():
+    query = st.text_input("Please enter a query", label_visibility="collapsed", key="query")
+    send_button = st.button("Send", key="send_btn")  # Single send button
+
+# Chat logic
+if send_button and query:
+    with st.spinner("Processing... Please wait!"):  # Spinner starts here
+        response = _chain.invoke({'question': query})  # Generate response
+    # Update session state with user query and AI response
+    st.session_state.messages.append(("user", query))
+    st.session_state.messages.append(("ai", response))
+
+# Display chat history from session state
+with chat_container:
+    for role, message in st.session_state.messages:
+        st.chat_message(role).write(message)
+
 
 # Input field for queries
 with st.container():
